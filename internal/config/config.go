@@ -48,11 +48,49 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
+	if err := cfg.addWorkingDirSource(); err != nil {
+		return nil, err
+	}
+
+	cfg.setDefaultSourceForIncludes()
+
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
 	return cfg, nil
+}
+
+func (c *Config) addWorkingDirSource() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	hasWorkingDir := false
+	for _, source := range c.Sources {
+		if source.Key == "working_dir" {
+			hasWorkingDir = true
+			break
+		}
+	}
+
+	if !hasWorkingDir {
+		c.Sources = append([]Source{{Key: "working_dir", URL: wd}}, c.Sources...)
+	}
+
+	return nil
+}
+
+func (c *Config) setDefaultSourceForIncludes() {
+	for i := range c.Targets {
+		for j := range c.Targets[i].Include {
+			include := &c.Targets[i].Include[j]
+			if include.Source == "" {
+				include.Source = "working_dir"
+			}
+		}
+	}
 }
 
 func (c *Config) Validate() error {

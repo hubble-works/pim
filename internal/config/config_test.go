@@ -79,6 +79,33 @@ targets:
 `,
 			expectError: false,
 		},
+		{
+			name: "omitted source defaults to working_dir",
+			config: `version: 1
+targets:
+  - name: target1
+    output: ./output
+    include:
+      - files:
+          - file1.txt
+`,
+			expectError: false,
+		},
+		{
+			name: "working_dir source is always added",
+			config: `version: 1
+sources:
+  - key: custom
+    url: /path/to/custom
+targets:
+  - name: target1
+    output: ./output
+    include:
+      - files:
+          - file1.txt
+`,
+			expectError: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -107,6 +134,18 @@ targets:
 				}
 				if cfg != nil && cfg.Version != 1 {
 					t.Errorf("expected version 1, got %d", cfg.Version)
+				}
+				if cfg != nil {
+					hasWorkingDir := false
+					for _, source := range cfg.Sources {
+						if source.Key == "working_dir" {
+							hasWorkingDir = true
+							break
+						}
+					}
+					if !hasWorkingDir {
+						t.Error("expected working_dir source to be present")
+					}
 				}
 			}
 		})
@@ -217,5 +256,61 @@ func TestValidate(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestWorkingDirSource(t *testing.T) {
+	cfg := &Config{
+		Version: 1,
+		Sources: []Source{
+			{Key: "custom", URL: "/path/to/custom"},
+		},
+	}
+
+	if err := cfg.addWorkingDirSource(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(cfg.Sources) != 2 {
+		t.Fatalf("expected 2 sources, got %d", len(cfg.Sources))
+	}
+
+	if cfg.Sources[0].Key != "working_dir" {
+		t.Errorf("expected first source to be working_dir, got %s", cfg.Sources[0].Key)
+	}
+
+	if cfg.Sources[0].URL == "" {
+		t.Error("expected working_dir URL to be set")
+	}
+}
+
+func TestDefaultSourceForIncludes(t *testing.T) {
+	cfg := &Config{
+		Version: 1,
+		Targets: []Target{
+			{
+				Name:   "target1",
+				Output: "/output",
+				Include: []Include{
+					{Files: []string{"file1.txt"}},
+					{Source: "custom", Files: []string{"file2.txt"}},
+					{Files: []string{"file3.txt"}},
+				},
+			},
+		},
+	}
+
+	cfg.setDefaultSourceForIncludes()
+
+	if cfg.Targets[0].Include[0].Source != "working_dir" {
+		t.Errorf("expected first include source to be working_dir, got %s", cfg.Targets[0].Include[0].Source)
+	}
+
+	if cfg.Targets[0].Include[1].Source != "custom" {
+		t.Errorf("expected second include source to remain custom, got %s", cfg.Targets[0].Include[1].Source)
+	}
+
+	if cfg.Targets[0].Include[2].Source != "working_dir" {
+		t.Errorf("expected third include source to be working_dir, got %s", cfg.Targets[0].Include[2].Source)
 	}
 }
