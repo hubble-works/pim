@@ -9,8 +9,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "pim",
-	Short: "Language Model Package Manager",
-	Long:  `A command-line utility for managing language models instruction files.`,
+	Short: "PIM - Prompt Instruction Manager",
+	Long:  "PIM is a CLI tool to manage and utilize prompt instructions for AI models.",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default behavior when no subcommand is specified
 		cmd.Help()
