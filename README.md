@@ -205,7 +205,11 @@ targets:
       - "prompts/system.txt"
       - "prompts/user.txt"
       - "deep/nested/file.txt"
-# Result: ./output/system.txt, ./output/user.txt, ./output/file.txt
+# Result:
+# output/
+#   ├── system.txt
+#   ├── user.txt
+#   └── file.txt
 ```
 
 **Preserve strategy** - Maintains directory structure:
@@ -219,7 +223,14 @@ targets:
       - "prompts/system.txt"
       - "prompts/user.txt"
       - "deep/nested/file.txt"
-# Result: ./output/prompts/system.txt, ./output/prompts/user.txt, ./output/deep/nested/file.txt
+# Result:
+# output/
+#   ├── prompts/
+#   │   ├── system.txt
+#   │   └── user.txt
+#   └── deep/
+#       └── nested/
+#           └── file.txt
 ```
 
 **Concat strategy (default for .md/.txt files)** - Concatenates all files:
@@ -231,7 +242,8 @@ targets:
     include:
       - "prompts/system.txt"
       - "prompts/user.txt"
-# Result: Single file ./all-prompts.md with both files concatenated
+# Result: Single file
+# all-prompts.md
 ```
 
 #### Minimal Configuration
