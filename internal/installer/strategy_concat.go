@@ -12,8 +12,10 @@ type ConcatStrategy struct {
 	outFile    *os.File
 }
 
-func NewConcatStrategy(outputPath string) *ConcatStrategy {
-	return &ConcatStrategy{outputPath: outputPath}
+func NewConcatStrategy(path string) *ConcatStrategy {
+	return &ConcatStrategy{
+		outputPath: path,
+	}
 }
 
 func (s *ConcatStrategy) Prepare() error {

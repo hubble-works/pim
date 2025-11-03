@@ -10,8 +10,10 @@ type FlattenStrategy struct {
 	outputPath string
 }
 
-func NewFlattenStrategy(outputPath string) *FlattenStrategy {
-	return &FlattenStrategy{outputPath: outputPath}
+func NewFlattenStrategy(path string) *FlattenStrategy {
+	return &FlattenStrategy{
+		outputPath: path,
+	}
 }
 
 func (s *FlattenStrategy) Prepare() error {

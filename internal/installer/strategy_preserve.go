@@ -10,8 +10,10 @@ type PreserveStrategy struct {
 	outputPath string
 }
 
-func NewPreserveStrategy(outputPath string) *PreserveStrategy {
-	return &PreserveStrategy{outputPath: outputPath}
+func NewPreserveStrategy(path string) *PreserveStrategy {
+	return &PreserveStrategy{
+		outputPath: path,
+	}
 }
 
 func (s *PreserveStrategy) Prepare() error {
