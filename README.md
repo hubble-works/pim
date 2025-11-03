@@ -320,5 +320,5 @@ See [LICENSE](LICENSE) file for details.
 For detailed specification, see [SPEC.md](SPEC.md). 
 
 ## Awesome Lists
-- [Awesome Copilot](http://github.com/github/awesome-copilot/)
+- [Awesome Copilot](https://github.com/github/awesome-copilot/)
 - [Contains Studio AI Agents](https://github.com/contains-studio/agents)
