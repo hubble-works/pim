@@ -59,7 +59,7 @@ func (i *Installer) Install() error {
 		}
 		defer strategy.Close()
 
-		for _, include := range target.Include {
+		for _, include := range target.IncludeParsed {
 			sourceDir, ok := sourceDirsByName[include.Source]
 			if !ok {
 				return fmt.Errorf("source '%s' not found", include.Source)

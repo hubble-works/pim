@@ -23,18 +23,22 @@ targets:
     output: ./output/dir  # Output directory for downloaded files
     strategy: flatten     # Optional: 'flatten' (default), 'preserve' or 'concat'
     include:
-      - source: local-dir # Reference to source name
-        files:            # List of file paths to include
-          - file1.txt
-          - folder/file2.txt
-      - source: git-repo
-        files:
-          - README.md
+      - "@local-dir/file1.txt"            # File from local-dir source
+      - "@git-repo/README.md"             # File from git-repo source
+      - "local-file.txt"                  # File from working_dir (implicit)
 ```
+
+#### Include Format
+
+The `include` field uses a simple string format to specify files:
+
+- **Local files** (from `working_dir`): `"path/to/file.txt"`
+- **Files from other sources**: `"@source-name/path/to/file.txt"`
+- **Multiple files** in one line: `"file1.txt, file2.txt, file3.txt"`
 
 #### Minimal Configuration Example
 
-Since the `working_dir` source is automatically available and `source` defaults to `working_dir`, you can write a minimal configuration:
+Since the `working_dir` source is automatically available, you can write a minimal configuration:
 
 ```yaml
 version: 1
@@ -43,9 +47,8 @@ targets:
   - name: my-target
     output: ./output
     include:
-      - files:              # source defaults to working_dir
-          - prompts/system.txt
-          - prompts/user.txt
+      - "prompts/system.txt"
+      - "prompts/user.txt"
 ```
 
 This is equivalent to:
@@ -61,10 +64,8 @@ targets:
   - name: my-target
     output: ./output
     include:
-      - source: working_dir
-        files:
-          - prompts/system.txt
-          - prompts/user.txt
+      - "@working_dir/prompts/system.txt"
+      - "@working_dir/prompts/user.txt"
 ```
 
 ### Strategy Examples
@@ -81,10 +82,9 @@ targets:
     output: ./output
     strategy: flatten  # or omit for directories, as this is the default
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
-          - deep/nested/config.yaml
+      - "prompts/system.txt"
+      - "prompts/user.txt"
+      - "deep/nested/config.yaml"
 
 # Results in:
 # ./output/system.txt
@@ -104,10 +104,9 @@ targets:
     output: ./output
     strategy: preserve
     include:
-      - files:
-          - prompts/system.txt
-          - prompts/user.txt
-          - deep/nested/config.yaml
+      - "prompts/system.txt"
+      - "prompts/user.txt"
+      - "deep/nested/config.yaml"
 
 # Results in:
 # ./output/prompts/system.txt
@@ -126,26 +125,14 @@ targets:
   - name: combined-docs
     output: ./all-docs.md  # .md extension triggers concat automatically
     include:
-      - files:
-          - docs/intro.md
-          - docs/guide.md
-          - docs/api.md
+      - "docs/intro.md"
+      - "docs/guide.md"
+      - "docs/api.md"
 
 # Results in a single file: ./all-docs.md
-# Content format:
-#
-# # File: docs/intro.md
-#
-# <content of intro.md>
-#
-# # File: docs/guide.md
-#
-# <content of guide.md>
-#
-# # File: docs/api.md
-#
-# <content of api.md>
 ```
+
+### Configuration Elements
 
 #### Sources
 - `name`: Unique identifier for the source
@@ -163,9 +150,9 @@ targets:
   - `flatten`: Remove subdirectories, copy all files to output root directory (default for directories)
   - `preserve`: Maintain the original directory structure from the source
   - `concat`: Concatenate all files into a single output file (default when output ends with .md or .txt)
-- `include`: List of includes from sources
-  - `source`: Reference to a source name (optional, defaults to `working_dir`)
-  - `files`: List of file paths to include from that source
+- `include`: List of file paths to include
+  - Format: `"path/to/file.txt"` for local files (from working_dir source)
+  - Format: `"@source-name/path/to/file.txt"` for files from named sources
 
 ### Configuration Location
 - Default: `pim.yaml` or `.pim.yaml` in the current directory
