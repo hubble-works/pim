@@ -25,7 +25,7 @@ builds:
 
 archives:
   - id: default
-    format: tar.gz
+    formats: [ 'tar.gz' ]
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
@@ -36,7 +36,7 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ 'zip' ]
     files:
       - LICENSE
       - README.md
@@ -46,7 +46,7 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
