@@ -1,3 +1,9 @@
+# PIM (Prompt Instruction Manager)
+
+PIM is a CLI tool designed to help manage and organize prompt instructions for AI applications. It allows to
+define, modularize, and reuse prompt instructions across multiple projects, making it easier to maintain consistency and
+quality in AI interactions.
+
 ---
 description: 'Instructions for writing Go code following idiomatic Go practices and community standards'
 applyTo: '**/*.go,**/go.mod,**/go.sum'
@@ -372,6 +378,6 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Not considering the zero value of types
 - **Creating duplicate `package` declarations** - this is a compile error; always check existing files before adding package declarations
 
-## Code style
+## Project Code style
 
 * Prefer functions to methods when the receiver is not needed.
