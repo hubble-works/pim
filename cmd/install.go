@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hubble-works/pim/internal/config"
-	"github.com/hubble-works/pim/internal/installer"
+	"github.com/hubblew/pim/internal/config"
+	"github.com/hubblew/pim/internal/installer"
 	"github.com/spf13/cobra"
 )
+
+var configFlag string
+
+const DefaultConfigFileName = "pim.yaml"
 
 var installCmd = &cobra.Command{
 	Use:   "install [directory]",
@@ -24,15 +28,11 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("failed to change to directory %s: %w", dir, err)
 		}
 
-		configPath := "pim.yaml"
-		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			configPath = ".pim.yaml"
-			if _, err := os.Stat(configPath); os.IsNotExist(err) {
-				return fmt.Errorf("configuration file not found (pim.yaml or .pim.yaml)")
-			}
+		if _, err := os.Stat(configFlag); os.IsNotExist(err) {
+			return fmt.Errorf("configuration file not found: %s", configFlag)
 		}
 
-		cfg, err := config.LoadConfig(configPath)
+		cfg, err := config.LoadConfig(configFlag)
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
 		}
@@ -47,5 +47,13 @@ var installCmd = &cobra.Command{
 }
 
 func init() {
+	installCmd.Flags().StringVarP(
+		&configFlag,
+		"config",
+		"c",
+		DefaultConfigFileName,
+		"Path to configuration file",
+	)
+
 	rootCmd.AddCommand(installCmd)
 }
