@@ -25,7 +25,7 @@ const (
 
 type Include struct {
 	Source string
-	Files  []string
+	File   string
 }
 
 type Target struct {
@@ -162,33 +162,22 @@ func (c *Config) Validate() error {
 }
 
 func ParseInclude(includeStr string) (Include, error) {
-	// if includeStr starts with @, it's structure is "@source/path1,path2,..."
+	// if includeStr starts with @, it's structure is "@source/path"
 	if len(includeStr) > 0 && includeStr[0] == '@' {
 		parts := strings.SplitN(includeStr[1:], "/", 2)
 		if len(parts) != 2 {
 			return Include{}, fmt.Errorf("invalid include format: %s", includeStr)
 		}
 
-		source := parts[0]
-		filePaths := strings.Split(parts[1], ",")
-		for i := range filePaths {
-			filePaths[i] = strings.TrimSpace(filePaths[i])
-		}
-
 		return Include{
-			Source: source,
-			Files:  filePaths,
-		}, nil
-	} else {
-		// otherwise, it's just a path in the working_dir source
-		filePaths := strings.Split(includeStr, ",")
-		for i := range filePaths {
-			filePaths[i] = strings.TrimSpace(filePaths[i])
-		}
-
-		return Include{
-			Source: DefaultSourceName,
-			Files:  filePaths,
+			Source: parts[0],
+			File:   parts[1],
 		}, nil
 	}
+
+	// otherwise, it's just a path in the working_dir source
+	return Include{
+		Source: DefaultSourceName,
+		File:   includeStr,
+	}, nil
 }

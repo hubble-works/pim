@@ -34,7 +34,6 @@ The `include` field uses a simple string format to specify files:
 
 - **Local files** (from `working_dir`): `"path/to/file.txt"`
 - **Files from other sources**: `"@source-name/path/to/file.txt"`
-- **Multiple files** in one line: `"file1.txt, file2.txt, file3.txt"`
 - **Wildcard patterns**: `"*.md"`, `"**/*.txt"`, `"??.yaml"`, `"[a-z]*.md"`
 
 #### Minimal Configuration Example

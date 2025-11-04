@@ -65,32 +65,30 @@ func (i *Installer) Install() error {
 				return fmt.Errorf("source '%s' not found", include.Source)
 			}
 
-			for _, file := range include.Files {
-				srcPath := filepath.Join(sourceDir, file)
+			srcPath := filepath.Join(sourceDir, include.File)
 
-				// Use Glob to handle both literal paths and wildcard patterns
-				matches, err := filepath.Glob(srcPath)
+			// Use Glob to handle both literal paths and wildcard patterns
+			matches, err := filepath.Glob(srcPath)
+			if err != nil {
+				return fmt.Errorf("failed to expand pattern '%s': %w", include.File, err)
+			}
+
+			if len(matches) == 0 {
+				return fmt.Errorf("no files matched pattern '%s'", include.File)
+			}
+
+			for _, match := range matches {
+				// Get the relative path from sourceDir
+				relPath, err := filepath.Rel(sourceDir, match)
 				if err != nil {
-					return fmt.Errorf("failed to expand pattern '%s': %w", file, err)
+					return fmt.Errorf("failed to get relative path for '%s': %w", match, err)
 				}
 
-				if len(matches) == 0 {
-					return fmt.Errorf("no files matched pattern '%s'", file)
+				if err := strategy.AddFile(match, relPath); err != nil {
+					return fmt.Errorf("failed to add file '%s': %w", relPath, err)
 				}
 
-				for _, match := range matches {
-					// Get the relative path from sourceDir
-					relPath, err := filepath.Rel(sourceDir, match)
-					if err != nil {
-						return fmt.Errorf("failed to get relative path for '%s': %w", match, err)
-					}
-
-					if err := strategy.AddFile(match, relPath); err != nil {
-						return fmt.Errorf("failed to add file '%s': %w", relPath, err)
-					}
-
-					fmt.Printf("  ✓ %s\n", relPath)
-				}
+				fmt.Printf("  ✓ %s\n", relPath)
 			}
 		}
 	}

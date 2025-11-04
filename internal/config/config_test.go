@@ -181,7 +181,7 @@ func TestValidate(t *testing.T) {
 						Name:   "t1",
 						Output: "/output",
 						IncludeParsed: []Include{
-							{Source: "s1", Files: []string{"file.txt"}},
+							{Source: "s1", File: "file.txt"},
 						},
 					},
 				},
@@ -200,7 +200,7 @@ func TestValidate(t *testing.T) {
 						Name:   "t1",
 						Output: "/output",
 						IncludeParsed: []Include{
-							{Source: "unknown", Files: []string{"file.txt"}},
+							{Source: "unknown", File: "file.txt"},
 						},
 					},
 				},
@@ -294,9 +294,9 @@ func TestDefaultSourceForIncludes(t *testing.T) {
 				Name:   "target1",
 				Output: "/output",
 				IncludeParsed: []Include{
-					{Files: []string{"file1.txt"}},
-					{Source: "custom", Files: []string{"file2.txt"}},
-					{Files: []string{"file3.txt"}},
+					{File: "file1.txt"},
+					{Source: "custom", File: "file2.txt"},
+					{File: "file3.txt"},
 				},
 			},
 		},
@@ -329,7 +329,7 @@ func TestInvalidStrategy(t *testing.T) {
 				Output:       "/output",
 				StrategyType: "invalid",
 				IncludeParsed: []Include{
-					{Source: "s1", Files: []string{"file.txt"}},
+					{Source: "s1", File: "file.txt"},
 				},
 			},
 		},
@@ -356,22 +356,17 @@ func TestParseInclude(t *testing.T) {
 		{
 			name:       "local file",
 			includeStr: "file.txt",
-			expected:   Include{Source: DefaultSourceName, Files: []string{"file.txt"}},
-		},
-		{
-			name:       "multiple local files",
-			includeStr: "file1.txt, file2.txt, file3.txt",
-			expected:   Include{Source: DefaultSourceName, Files: []string{"file1.txt", "file2.txt", "file3.txt"}},
+			expected:   Include{Source: DefaultSourceName, File: "file.txt"},
 		},
 		{
 			name:       "remote source single file",
 			includeStr: "@source/file.txt",
-			expected:   Include{Source: "source", Files: []string{"file.txt"}},
+			expected:   Include{Source: "source", File: "file.txt"},
 		},
 		{
-			name:       "remote source multiple files",
-			includeStr: "@source/file1.txt, file2.txt",
-			expected:   Include{Source: "source", Files: []string{"file1.txt", "file2.txt"}},
+			name:       "remote source with path",
+			includeStr: "@source/path/to/file.txt",
+			expected:   Include{Source: "source", File: "path/to/file.txt"},
 		},
 		{
 			name:        "invalid format no slash",
@@ -395,13 +390,8 @@ func TestParseInclude(t *testing.T) {
 				if result.Source != tt.expected.Source {
 					t.Errorf("expected source %q, got %q", tt.expected.Source, result.Source)
 				}
-				if len(result.Files) != len(tt.expected.Files) {
-					t.Errorf("expected %d files, got %d", len(tt.expected.Files), len(result.Files))
-				}
-				for i, file := range result.Files {
-					if file != tt.expected.Files[i] {
-						t.Errorf("expected file %q, got %q", tt.expected.Files[i], file)
-					}
+				if result.File != tt.expected.File {
+					t.Errorf("expected file %q, got %q", tt.expected.File, result.File)
 				}
 			}
 		})
