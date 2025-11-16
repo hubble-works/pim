@@ -1,4 +1,4 @@
-.PHONY: all build test test-verbose clean install demo
+.PHONY: all build test test-verbose tv clean install demo
 
 BINARY_NAME=pim
 BUILD_DIR=.
@@ -21,6 +21,8 @@ test:
 	@echo "Running tests..."
 	$(GO) test ./...
 
+tv: test-verbose
+
 test-verbose:
 	@echo "Running tests (verbose)..."
 	$(GO) test -v ./...
@@ -30,7 +32,7 @@ clean:
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)
 	rm -f coverage.out coverage.html
 
-install:
+install: build test
 	@echo "Installing $(BINARY_NAME)..."
 	$(GO) install $(LDFLAGS) .
 

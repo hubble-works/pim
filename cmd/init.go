@@ -2,16 +2,23 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
+	"embed"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
+	"text/template"
 
 	"github.com/goccy/go-yaml"
 	"github.com/hubblew/pim/internal/agents"
 	"github.com/hubblew/pim/internal/config"
 	"github.com/spf13/cobra"
 )
+
+//go:embed templates/generate_instructions.gohtml
+var templatesFS embed.FS
 
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -29,7 +36,7 @@ func runInit(_ *cobra.Command, _ []string) error {
 
 	// Step 1: Detect LLM agents
 	fmt.Println("Detecting CLI agents in your system...")
-	tools := agents.DetectAgents()
+	tools := agents.DetectAgentTools()
 
 	if len(tools) == 0 {
 		fmt.Println("No CLI agents detected in your system.")
@@ -39,14 +46,14 @@ func runInit(_ *cobra.Command, _ []string) error {
 
 	fmt.Println("\nDetected agents:")
 	for i, tool := range tools {
-		fmt.Printf("%d. %s\n", i+1, tool)
+		fmt.Printf("%d. %s\n", i+1, tool.Descriptor())
 	}
 
 	// Step 2: Ask user to choose a tool
-	var selectedTool string
+	var selectedTool agents.AgentTool
 	if len(tools) == 1 {
 		selectedTool = tools[0]
-		fmt.Printf("\nUsing detected tool: %s\n", selectedTool)
+		fmt.Printf("\nUsing detected tool: %s\n", selectedTool.Descriptor())
 	} else {
 		fmt.Print("\nSelect a tool (enter number): ")
 		input, err := reader.ReadString('\n')
@@ -96,16 +103,28 @@ func runInit(_ *cobra.Command, _ []string) error {
 	}
 	fmt.Printf("Instructions directory: %s\n", instructionsDir)
 
-	// Step 7: Look for existing instruction files
+	// Step 7: Ask if user wants to generate instructions using AI
+	fmt.Printf("\nDo you want to generate instruction files using %s? (y/n): ", selectedTool.Descriptor())
+	generateInput, err := reader.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+	if strings.TrimSpace(strings.ToLower(generateInput)) == "y" {
+		if err := generateInstructions(selectedTool, instructionsDir); err != nil {
+			fmt.Printf("Warning: failed to generate instructions: %v\n", err)
+		}
+	}
+
+	// Step 8: Look for existing instruction files
 	existingFiles := discoverInstructionFiles(instructionsDir)
 
-	// Step 8: Generate pim.yaml based on detected tool
+	// Step 9: Generate pim.yaml based on detected tool
 	cfg, err := generateConfig(selectedTool, instructionsDir, existingFiles)
 	if err != nil {
 		return fmt.Errorf("failed to generate config: %w", err)
 	}
 
-	// Step 9: Write config to file
+	// Step 10: Write config to file
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
@@ -171,12 +190,46 @@ func discoverInstructionFiles(instructionsDir string) []string {
 }
 
 // generateConfig creates a config based on the selected tool and discovered files
-func generateConfig(tool, instructionsDir string, existingFiles []string) (*config.Config, error) {
+func generateConfig(tool agents.AgentTool, instructionsDir string, existingFiles []string) (*config.Config, error) {
 	cfg := config.NewConfig()
 
-	switch tool {
-	case "GitHub Copilot":
-		cfg.Targets = generateGitHubCopilotTarget(instructionsDir, existingFiles)
+	switch reflect.TypeOf(tool) {
+	case agents.GhCopilotAgentType:
+		target := config.Target{
+			Name:    "copilot-instructions",
+			Output:  ".github/copilot-instructions.md",
+			Include: []string{},
+		}
+
+		// Add existing files to include list
+		for _, file := range existingFiles {
+			// Skip the output file itself
+			if file == ".github/copilot-instructions.md" {
+				continue
+			}
+			target.Include = append(target.Include, file)
+		}
+
+		cfg.Targets = []config.Target{target}
+		break
+	case agents.GeminiCLIAgentType:
+		target := config.Target{
+			Name:    "gemini-instructions",
+			Output:  "GEMINI.md",
+			Include: []string{},
+		}
+
+		// Add existing files to include list
+		for _, file := range existingFiles {
+			// Skip the output file itself
+			if file == "GEMINI.md" {
+				continue
+			}
+			target.Include = append(target.Include, file)
+		}
+
+		cfg.Targets = []config.Target{target}
+		break
 	default:
 		return nil, fmt.Errorf("unsupported tool: %s", tool)
 	}
@@ -184,31 +237,35 @@ func generateConfig(tool, instructionsDir string, existingFiles []string) (*conf
 	return cfg, nil
 }
 
-// generateGitHubCopilotTarget generates target configuration for GitHub Copilot
-func generateGitHubCopilotTarget(instructionsDir string, existingFiles []string) []config.Target {
-	target := config.Target{
-		Name:         "copilot-instructions",
-		Output:       ".github/copilot-instructions.md",
-		StrategyType: config.StrategyConcat,
-		Include:      []string{},
+// generateInstructions uses the agent tool to generate instruction files
+func generateInstructions(tool agents.AgentTool, instructionsDir string) error {
+	fmt.Printf("\nGenerating instruction files with %s (this may take a while)...\n\n", tool.Descriptor())
+
+	tmplContent, err := templatesFS.ReadFile("templates/generate_instructions.gohtml")
+	if err != nil {
+		return fmt.Errorf("failed to read template: %w", err)
 	}
 
-	// Add existing files to include list
-	for _, file := range existingFiles {
-		// Skip the output file itself
-		if file == ".github/copilot-instructions.md" {
-			continue
-		}
-		target.Include = append(target.Include, file)
+	tmpl, err := template.New("generate_instructions").Parse(string(tmplContent))
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	// If no files were found, add example includes
-	if len(target.Include) == 0 {
-		target.Include = []string{
-			filepath.Join(instructionsDir, "intro.md"),
-			filepath.Join(instructionsDir, "coding-style.md"),
-		}
+	var buf bytes.Buffer
+	data := map[string]string{
+		"InstructionsDir": instructionsDir,
+	}
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	return []config.Target{target}
+	prompt := buf.String()
+	_, err = tool.ExecuteCommand(prompt)
+	if err != nil {
+		return fmt.Errorf("failed to execute agent command: %w", err)
+	}
+
+	fmt.Println("\nYou can now manually create these instruction files in the", instructionsDir, "directory.")
+
+	return nil
 }

@@ -4,15 +4,20 @@ import (
 	"os/exec"
 )
 
-// DetectAgents checks for known LLM CLI tools in the system
-func DetectAgents() []string {
-	var tools []string
+// DetectAgentTools checks for known LLM CLI tools in the system
+func DetectAgentTools() []AgentTool {
+	var tools []AgentTool
 
-	if isCommandAvailable("copilot") {
-		// Check if gh copilot extension is available
-		cmd := exec.Command("copilot", "--version")
+	if path, ok := isCommandAvailable("copilot"); ok {
+		cmd := exec.Command(path, "--version")
 		if err := cmd.Run(); err == nil {
-			tools = append(tools, "GitHub Copilot")
+			tools = append(tools, NewGhCopilotAgent(path))
+		}
+	}
+	if path, ok := isCommandAvailable("gemini"); ok {
+		cmd := exec.Command(path, "--version")
+		if err := cmd.Run(); err == nil {
+			tools = append(tools, NewGeminiCLIAgent(path))
 		}
 	}
 
@@ -20,7 +25,8 @@ func DetectAgents() []string {
 }
 
 // isCommandAvailable checks if a command is available in PATH
-func isCommandAvailable(name string) bool {
-	_, err := exec.LookPath(name)
-	return err == nil
+func isCommandAvailable(name string) (string, bool) {
+	path, err := exec.LookPath(name)
+
+	return path, err == nil
 }
