@@ -1,4 +1,4 @@
-.PHONY: all build test test-verbose clean install
+.PHONY: all build test test-verbose clean install demo-ui
 
 BINARY_NAME=pim
 BUILD_DIR=.
@@ -33,3 +33,7 @@ clean:
 install:
 	@echo "Installing $(BINARY_NAME)..."
 	$(GO) install $(LDFLAGS) .
+
+demo:
+	@echo "Running UI component demo..."
+	$(GO) run internal/ui/demo/main.go
