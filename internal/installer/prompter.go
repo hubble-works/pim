@@ -26,7 +26,7 @@ const no = "n"
 func (p *InteractivePrompter) ConfirmOverwrite(path string) (bool, error) {
 	fmt.Printf("File %s already exists. Overwrite?\n", path)
 
-	choice := ui.NewChoiceDialog(
+	dialog := ui.NewChoiceDialog(
 		"Please confirm:",
 		[]ui.Choice{
 			{Label: "Yes", Value: yes},
@@ -34,16 +34,16 @@ func (p *InteractivePrompter) ConfirmOverwrite(path string) (bool, error) {
 		},
 	)
 
-	response, err := choice.Run()
+	choice, err := dialog.Run()
 
 	if err != nil {
 		return false, fmt.Errorf("failed to get user input: %w", err)
 	}
-	if response == nil {
+	if choice == nil {
 		return false, nil
 	}
 
-	return response.Value == yes, nil
+	return choice.Value == yes, nil
 }
 
 type AcceptAllPrompter struct{}
