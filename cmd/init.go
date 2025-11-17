@@ -48,10 +48,7 @@ func runInit(_ *cobra.Command, _ []string) error {
 	} else {
 		choices := make([]ui.Choice, len(tools))
 		for i, tool := range tools {
-			choices[i] = ui.Choice{
-				Label: tool.Descriptor(),
-				Value: tool,
-			}
+			choices[i] = ui.Choice{Label: tool.Descriptor(), Value: tool}
 		}
 
 		dialog := ui.NewChoiceDialog("\nSelect an agent:", choices).Vertical()

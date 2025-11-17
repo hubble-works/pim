@@ -65,13 +65,13 @@ func (d ChoiceDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			d.Selected = true
 			return d, tea.Quit
 
-		case "left", "h", "up", "k":
+		case "left", "up":
 			d.Cursor--
 			if d.Cursor < 0 {
 				d.Cursor = len(d.Choices) - 1
 			}
 
-		case "right", "l", "down", "j":
+		case "right", "down":
 			d.Cursor++
 			if d.Cursor >= len(d.Choices) {
 				d.Cursor = 0
@@ -90,8 +90,7 @@ func (d ChoiceDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for i, choice := range d.Choices {
 					if len(choice.Label) > 0 && strings.ToLower(string(choice.Label[0])) == key {
 						d.Cursor = i
-						d.Selected = true
-						return d, tea.Quit
+						return d, nil
 					}
 				}
 			}
@@ -151,21 +150,20 @@ func (d ChoiceDialog) View() string {
 	return b.String()
 }
 
-// GetSelectedChoice returns the currently selected choice.
-func (d ChoiceDialog) GetSelectedChoice() *Choice {
-	if d.Cancelled || !d.Selected || d.Cursor >= len(d.Choices) {
+// GetHighlightedChoice returns the currently highlighted choice.
+func (d ChoiceDialog) GetHighlightedChoice() *Choice {
+	if d.Cursor < 0 || d.Cursor >= len(d.Choices) {
 		return nil
 	}
 	return &d.Choices[d.Cursor]
 }
 
-// GetSelectedValue returns the value of the selected choice.
-func (d ChoiceDialog) GetSelectedValue() any {
-	choice := d.GetSelectedChoice()
-	if choice == nil {
+// GetSelectedChoice returns the currently selected choice.
+func (d ChoiceDialog) GetSelectedChoice() *Choice {
+	if d.Cancelled || !d.Selected {
 		return nil
 	}
-	return choice.Value
+	return d.GetHighlightedChoice()
 }
 
 // Run is a convenience method to run the choice selector and return the result.

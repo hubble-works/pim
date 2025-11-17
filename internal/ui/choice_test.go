@@ -123,19 +123,30 @@ func TestChoiceDialog_QuickSelect(t *testing.T) {
 
 	model := NewChoiceDialog("Confirm?", choices)
 
-	// Press 'n' to quickly select "No"
+	// Press 'n' to quickly highlight "No"
 	result, _ := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
 	model = result.(ChoiceDialog)
 
-	if !model.Selected {
-		t.Error("expected model to be selected")
+	if model.Selected {
+		t.Error("expected model not to be selected")
 	}
 
 	if model.Cursor != 1 {
 		t.Errorf("expected cursor at 1 (No), got %d", model.Cursor)
 	}
 
-	choice := model.GetSelectedChoice()
+	choice := model.GetHighlightedChoice()
+	if choice == nil || choice.Value != false {
+		t.Error("expected 'No' to be highlighted")
+	}
+
+	result, _ = model.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	model = result.(ChoiceDialog)
+
+	if !model.Selected {
+		t.Error("expected model to be selected")
+	}
+	choice = model.GetSelectedChoice()
 	if choice == nil || choice.Value != false {
 		t.Error("expected 'No' to be selected")
 	}
