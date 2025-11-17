@@ -6,7 +6,7 @@ import (
 	"github.com/hubblew/pim/internal/ui"
 )
 
-func demoPressKey() {
+func demoPressAnyKey() {
 	fmt.Println("=== Press Key Demo ===")
 	fmt.Println()
 	fmt.Println("This demo shows how to wait for user input.")
@@ -32,6 +32,6 @@ func demoPressKey() {
 	fmt.Println("\n✅ All done!")
 }
 
-func runPressKeyDemos() {
-	demoPressKey()
+func runPressAnyKeyDemos() {
+	demoPressAnyKey()
 }

@@ -4,28 +4,28 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// PressKeyDialog is a Bubble Tea model for waiting for any key press.
-type PressKeyDialog struct {
+// PressAnyKeyDialog is a Bubble Tea model for waiting for any key press.
+type PressAnyKeyDialog struct {
 	Message     string
 	Pressed     bool
 	StyleConfig StyleConfig
 }
 
-var _ tea.Model = (*PressKeyDialog)(nil)
+var _ tea.Model = (*PressAnyKeyDialog)(nil)
 
-// NewPressKeyDialog creates a new press key dialog.
-func NewPressKeyDialog(message string) PressKeyDialog {
-	return PressKeyDialog{
+// NewPressAnyKeyDialog creates a new press key dialog.
+func NewPressAnyKeyDialog(message string) PressAnyKeyDialog {
+	return PressAnyKeyDialog{
 		Message:     message,
 		StyleConfig: DefaultStyleConfig(),
 	}
 }
 
-func (d PressKeyDialog) Init() tea.Cmd {
+func (d PressAnyKeyDialog) Init() tea.Cmd {
 	return nil
 }
 
-func (d PressKeyDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (d PressAnyKeyDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.String() != "" {
@@ -37,7 +37,7 @@ func (d PressKeyDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return d, nil
 }
 
-func (d PressKeyDialog) View() string {
+func (d PressAnyKeyDialog) View() string {
 	if d.Pressed {
 		return ""
 	}
@@ -46,7 +46,7 @@ func (d PressKeyDialog) View() string {
 }
 
 // Run is a convenience method to run the press key dialog.
-func (d PressKeyDialog) Run() error {
+func (d PressAnyKeyDialog) Run() error {
 	p := tea.NewProgram(d)
 	_, err := p.Run()
 	return err
@@ -54,6 +54,6 @@ func (d PressKeyDialog) Run() error {
 
 // WaitForKey displays a message and waits for any key press.
 func WaitForKey(message string) error {
-	dialog := NewPressKeyDialog(message)
+	dialog := NewPressAnyKeyDialog(message)
 	return dialog.Run()
 }

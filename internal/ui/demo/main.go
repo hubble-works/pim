@@ -15,7 +15,7 @@ type Demo struct {
 func main() {
 	demos := []Demo{
 		{Name: "Choice Component Demos", Run: runChoiceDemos},
-		{Name: "Press Key Demo", Run: runPressKeyDemos},
+		{Name: "Press Any Key Demo", Run: runPressAnyKeyDemos},
 	}
 
 	choices := make([]ui.Choice, len(demos))
@@ -26,9 +26,11 @@ func main() {
 		}
 	}
 
-	fmt.Println("\n" + "═════════════════════════════════════════════════")
+	fmt.Println()
+	fmt.Println("═════════════════════════════════════════════════")
 	fmt.Println(" PIM UI Component Demos")
 	fmt.Println("═════════════════════════════════════════════════")
+	fmt.Println()
 
 	model := ui.NewVerticalChoiceDialog("Select a demo to run:", choices)
 	choice, err := model.Run()
