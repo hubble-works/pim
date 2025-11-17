@@ -10,13 +10,15 @@ import (
 
 type SpinnerDialog struct {
 	Spinner spinner.Model
-	Done    bool
 	Text    string
+	done    bool
+	err     error
 }
 
 var _ tea.Model = (*SpinnerDialog)(nil)
 
 type doneMsg struct{}
+type errorMsg error
 
 func NewSpinnerDialog(text string) SpinnerDialog {
 	s := spinner.New()
@@ -41,7 +43,11 @@ func (s SpinnerDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return s, tea.Quit
 		}
 	case doneMsg:
-		s.Done = true
+		s.done = true
+		return s, tea.Quit
+	case errorMsg:
+		s.done = true
+		s.err = msg
 		return s, tea.Quit
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -52,7 +58,10 @@ func (s SpinnerDialog) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (s SpinnerDialog) View() string {
-	if s.Done {
+	if s.err != nil {
+		return "Error: " + s.err.Error() + "\n"
+	}
+	if s.done {
 		return ""
 	}
 
@@ -81,7 +90,7 @@ func RunWithSpinner(text string, fn func() error) error {
 	}
 
 	// Check if the spinner was cancelled (e.g., Ctrl+C)
-	if result, ok := finalModel.(SpinnerDialog); ok && !result.Done {
+	if result, ok := finalModel.(SpinnerDialog); ok && !result.done {
 		cancel()
 		// Wait briefly for the goroutine to finish or timeout
 		select {
